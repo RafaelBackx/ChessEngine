@@ -6,5 +6,10 @@ namespace windows {
 		void showMenu();
 		void playGame();
 	};
+
+	class NetworkTest {
+	public:
+		void showConnectMenu();
+	};
 }
 #endif

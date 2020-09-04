@@ -136,6 +136,7 @@
     <ClInclude Include="imaging\TextureManager.h" />
     <ClInclude Include="imaging\windows.h" />
     <ClInclude Include="minimax\minimax.h" />
+    <ClInclude Include="network\network.h" />
     <ClInclude Include="util\position.h" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +145,7 @@
     <ClCompile Include="imaging\windows.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="minimax\minimax.cpp" />
+    <ClCompile Include="network\network.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="sprites\bishop_b.png" />

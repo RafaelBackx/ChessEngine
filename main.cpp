@@ -4,8 +4,11 @@
 
 int main()
 {
-	windows::Chess chess;
-	chess.showMenu();
+	windows::NetworkTest test;
+	test.showConnectMenu();
+
+	/*windows::Chess chess;
+	chess.showMenu();*/
 
 	/*ChessGame* game = new ChessGame();
 	game->run();
