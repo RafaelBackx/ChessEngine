@@ -2,7 +2,7 @@
 #include "TGUI/TGUI.hpp"
 #include "imaging.h"
 #include <iostream>
-#include "../network/network.h"
+#include "SFML/Network.hpp"
 void windows::Chess::showMenu() 
 {
     sf::RenderWindow window( {800, 600}, "Window" );
@@ -39,15 +39,10 @@ void windows::NetworkTest::showConnectMenu()
 {
     // start listening for tcp connections on the main pc on port 53000
     sf::TcpListener listener;
-    if (listener.listen(53000) != sf::Socket::Done)
-    {
-        std::cout << "an error has occured | ServerSide while listening" << std::endl;
-    }
+    listener.listen(53000);
+    listener.setBlocking(false);
     sf::TcpSocket client;
-    if (listener.accept(client) != sf::Socket::Done)
-    {
-        std::cout << "an error has occured | Serverside while connecting" << std::endl;
-    }
+    std::cout << "waiting for a connection..." << std::endl;
 
 
 
@@ -79,6 +74,11 @@ void windows::NetworkTest::showConnectMenu()
             {
                 window.close();
             }
+        }
+        sf::Socket::Status status = listener.accept(client);
+        if (status == sf::Socket::Status::Done)
+        {
+            std::cout << "Client has connected " << client.getRemoteAddress() << std::endl;
         }
         window.clear(sf::Color::White);
         gui.draw();
