@@ -3,14 +3,15 @@
 #include "imaging.h"
 #include <iostream>
 #include "SFML/Network.hpp"
+
 void windows::Chess::showMenu() 
 {
-    sf::RenderWindow window( {800, 600}, "Window" );
+    sf::RenderWindow window( {400, 600}, "Window" );
     tgui::Gui gui{ window }; // Create the gui and attach it to the window
     tgui::Button::Ptr playButton = tgui::Button::create();
     playButton->setText("PLAY");
-    playButton->setPosition(window.getSize().x / 2, window.getSize().y * 0.333);
-    auto buttonstyle = playButton->getRenderer();
+    playButton->setPosition(window.getSize().x * 0.5, window.getSize().y * 0.333);
+    auto buttonstyle = playButton->getSharedRenderer();
     buttonstyle->setBackgroundColor(tgui::Color::Black);
     buttonstyle->setTextColor(tgui::Color::White);
     playButton->connect("Clicked", [&]() 
@@ -19,7 +20,12 @@ void windows::Chess::showMenu()
             ChessGame game;
             game.run();
         });
+    tgui::Button::Ptr network = tgui::Button::create();
+    network->setText("Play over Network");
+    network->setPosition(window.getSize().x * 0.5, window.getSize().y * 0.5);
+    network->connect("Clicked", &Chess::showNetworkMenu, this,std::ref(window), std::ref(gui));
     gui.add(playButton);
+    gui.add(network);
     while (window.isOpen())
     {
         sf::Event event;
@@ -31,6 +37,62 @@ void windows::Chess::showMenu()
         }
         window.clear(sf::Color::White);
         gui.draw(); // Draw all widgets
+        window.display();
+    }
+}
+
+void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
+{
+    window.clear();
+    gui.removeAllWidgets();
+    sf::Event event;
+    tgui::TextBox::Ptr serverAdress = tgui::TextBox::create();
+    serverAdress->setDefaultText("Server ip-address 0.0.0.0");
+    serverAdress->setSize(200, 50);
+    serverAdress->setPosition(window.getSize().x * 0.5 - serverAdress->getSize().x*0.5, window.getSize().y * 0.3334);
+    tgui::Button::Ptr connectButton = tgui::Button::create();
+    connectButton->setText("Connect");
+    connectButton->setPosition(window.getSize().x * 0.5 - connectButton->getSize().x*0.5, window.getSize().y * 0.5);
+    connectButton->connect("Clicked", [&]()
+        {
+            // get ip addres from textbox
+            std::string ipaddress = serverAdress->getText();
+            std::cout << ipaddress << std::endl;
+            sf::TcpSocket socket;
+            auto status = socket.connect(ipaddress, 53000);
+            if (status == sf::Socket::Status::Done)
+            {
+                std::cout << "Connected succesfully to " << ipaddress << std::endl;
+            }
+        });
+    tgui::Button::Ptr listenButton = tgui::Button::create();
+    listenButton->setText("Start listening for clients");
+    listenButton->setPosition(window.getSize().x * 0.5 - listenButton->getSize().x * 0.5, window.getSize().y * 0.6667);
+    sf::TcpListener listener;
+    sf::TcpSocket client;
+    listenButton->connect("Clicked", [&]()
+        {
+            listener.listen(53000);
+            auto status = listener.accept(client);
+            if (status == sf::Socket::Status::Done)
+            {
+                std::cout << "Client succesfully connected with address " << client.getRemoteAddress() << std::endl;
+            }
+        });
+    gui.add(serverAdress);
+    gui.add(connectButton);
+    while(window.isOpen())
+    {
+        while(window.pollEvent(event))
+        {
+            gui.handleEvent(event);
+            if (event.type == sf::Event::Closed)
+            {
+                window.close();
+            }
+        }
+        window.clear(sf::Color::White);
+        gui.draw();
         window.display();
     }
 }
