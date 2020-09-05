@@ -72,13 +72,26 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
     sf::TcpSocket client;
     listenButton->connect("Clicked", [&]()
         {
+            listener.setBlocking(false);
             listener.listen(53000);
-            auto status = listener.accept(client);
-            if (status == sf::Socket::Status::Done)
-            {
-                std::cout << "Client succesfully connected with address " << client.getRemoteAddress() << std::endl;
-            }
         });
+    tgui::TextBox::Ptr message = tgui::TextBox::create();
+    message->setDefaultText("message...");
+    message->setSize(100, 40);
+    message->setPosition(0, window.getSize().y - message->getSize().y);
+    tgui::Button::Ptr sendButton = tgui::Button::create();
+    sendButton->setText("Send");
+    sendButton->setPosition(message->getSize().x, window.getSize().y - sendButton->getSize().y);
+    sendButton->connect("Clicked", [&]()
+        {
+            std::string data = message->getText();
+            sf::Packet packet;
+            packet.append(data.c_str(), sizeof(data));
+            client.send(packet);
+        });
+    gui.add(sendButton);
+    gui.add(message);
+    gui.add(listenButton);
     gui.add(serverAdress);
     gui.add(connectButton);
     while(window.isOpen())
@@ -90,6 +103,15 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
             {
                 window.close();
             }
+        }
+        auto status = listener.accept(client);
+        if (status == sf::Socket::Status::Done)
+        {
+            std::cout << "Client succesfully connected with address " << client.getRemoteAddress() << std::endl;
+            sf::Packet receivedPacket;
+            client.receive(receivedPacket);
+            char* receivedData = (char*)receivedPacket.getData();
+            std::cout << receivedData << std::endl;
         }
         window.clear(sf::Color::White);
         gui.draw();
