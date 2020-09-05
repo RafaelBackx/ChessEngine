@@ -59,9 +59,17 @@ void windows::NetworkTest::showConnectMenu()
         {
             sf::TcpSocket socket;
             sf::Socket::Status status = socket.connect("192.168.0.125", 53000);
-            if (status != sf::Socket::Done )
+            if (status == sf::Socket::Done )
             {
-                std::cout << "an error has occured | clientside" << std::endl;
+                std::cout << "connected succesfully with server" << std::endl;
+                sf::Packet data;
+                std::string message = "hello from client";
+                data.append(message.c_str(), sizeof(message));
+                socket.send(data);
+                socket.receive(data);
+                void* receivedData = const_cast<void*>(data.getData());
+                std::string* receivedMessage = reinterpret_cast<std::string*>(receivedData);
+                std::cout << *receivedMessage << std::endl;
             }
         });
     gui.add(clientConnect);
@@ -76,9 +84,19 @@ void windows::NetworkTest::showConnectMenu()
             }
         }
         sf::Socket::Status status = listener.accept(client);
+        //std::cout << status << std::endl;
         if (status == sf::Socket::Status::Done)
         {
             std::cout << "Client has connected " << client.getRemoteAddress() << std::endl;
+            sf::Packet receivedPacket;
+            client.receive(receivedPacket);
+            const void* data = receivedPacket.getData();
+            char* message = (char*)data;
+            std::cout << message << std::endl;
+            std::string response = "Hello from server";
+            sf::Packet packet;
+            packet.append(response.c_str(), sizeof(response));
+            client.send(packet);
         }
         window.clear(sf::Color::White);
         gui.draw();
