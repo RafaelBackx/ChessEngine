@@ -4,6 +4,51 @@
 #include <iostream>
 #include "SFML/Network.hpp"
 
+void windows::Chess::showChatWindow(sf::TcpSocket& socket)
+{
+    sf::RenderWindow window(sf::VideoMode(300, 600), "Chat - " + socket.getRemoteAddress().toString());
+    sf::Event event;
+    tgui::Gui gui(window);
+    tgui::TextBox::Ptr messageBox = tgui::TextBox::create();
+    messageBox->setDefaultText("Message...");
+    messageBox->setSize(200, 50);
+    messageBox->setPosition(0, window.getSize().y - messageBox->getSize().y);
+    tgui::Button::Ptr sendButton = tgui::Button::create();
+    sendButton->setText("Send");
+    sendButton->setSize(100, 50);
+    sendButton->setPosition(messageBox->getSize().x, window.getSize().y - sendButton->getSize().y);
+    sendButton->connect("Clicked", [&]()
+        {
+            std::string message = messageBox->getText();
+            sf::Packet packet;
+            packet.append(message.c_str(), sizeof(message));
+            socket.send(packet);
+        });
+    gui.add(messageBox);
+    gui.add(sendButton);
+    while (window.isOpen())
+    {
+        while(window.pollEvent(event))
+        {
+            gui.handleEvent(event);
+            if (event.type == sf::Event::Closed)
+            {
+                window.close();
+            }
+        }
+        sf::Packet receivedPacket;
+        auto status = socket.receive(receivedPacket);
+        if (status == sf::Socket::Status::Done)
+        {
+            char* message = (char*)receivedPacket.getData();
+            std::cout << message << std::endl;
+        }
+        window.clear(sf::Color::White);
+        gui.draw();
+        window.display();
+    }
+}
+
 void windows::Chess::showMenu() 
 {
     sf::RenderWindow window( {400, 600}, "Window" );
@@ -65,22 +110,25 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
             {
                 std::cout << "Connected succesfully to " << ipaddress << std::endl;
                 server = false;
+                socket.setBlocking(false);
+                this->showChatWindow(socket);
             }
         });
     tgui::Button::Ptr listenButton = tgui::Button::create();
     listenButton->setText("Start listening for clients");
     listenButton->setPosition(window.getSize().x * 0.5 - listenButton->getSize().x * 0.5, window.getSize().y * 0.6667);
     sf::TcpListener listener;
-    sf::TcpSocket client;
+    //listener.setBlocking(false);
     listenButton->connect("Clicked", [&]()
         {
-            listener.setBlocking(false);
             listener.listen(53000);
-            auto status = listener.accept(client);
+            auto status = listener.accept(socket);
             if (status == sf::Socket::Status::Done)
             {
-                std::cout << "Client succesfully connected with address " << client.getRemoteAddress() << std::endl;
+                std::cout << "Client succesfully connected with address " << socket.getRemoteAddress() << std::endl;
                 server = true;
+                socket.setBlocking(false);
+                this->showChatWindow(socket);
             }
         });
     tgui::TextBox::Ptr message = tgui::TextBox::create();
@@ -95,14 +143,7 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
             std::string data = message->getText();
             sf::Packet packet;
             packet.append(data.c_str(), sizeof(data));
-            if (server)
-            {
-                client.send(packet);
-            }
-            else
-            {
-                socket.send(packet);
-            }
+            socket.send(packet);
         });
     gui.add(sendButton);
     gui.add(message);
@@ -121,7 +162,7 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
         }
         
         sf::Packet receivedPacket;
-        auto receiveStatus = client.receive(receivedPacket);
+        auto receiveStatus = socket.receive(receivedPacket);
         if  (receiveStatus == sf::Socket::Status::Done)
         {
             char* receivedData = (char*)receivedPacket.getData();
