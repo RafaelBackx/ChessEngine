@@ -165,7 +165,8 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 std::cout << "Client succesfully connected with address " << socket.getRemoteAddress() << std::endl;
                 server = true;
                 socket.setBlocking(false);
-                this->showChatWindow(socket);
+                std::thread chatThread(&Chess::showChatWindow, this, std::ref(socket));
+                //this->showChatWindow(socket);
             }
         });
     gui.add(listenButton);
