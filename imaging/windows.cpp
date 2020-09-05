@@ -43,6 +43,7 @@ void windows::Chess::showMenu()
 
 void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
 {
+    bool server;
     window.clear();
     gui.removeAllWidgets();
     sf::Event event;
@@ -53,16 +54,17 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
     tgui::Button::Ptr connectButton = tgui::Button::create();
     connectButton->setText("Connect");
     connectButton->setPosition(window.getSize().x * 0.5 - connectButton->getSize().x*0.5, window.getSize().y * 0.5);
+    sf::TcpSocket socket;
     connectButton->connect("Clicked", [&]()
         {
             // get ip addres from textbox
             std::string ipaddress = serverAdress->getText();
             std::cout << ipaddress << std::endl;
-            sf::TcpSocket socket;
             auto status = socket.connect(ipaddress, 53000);
             if (status == sf::Socket::Status::Done)
             {
                 std::cout << "Connected succesfully to " << ipaddress << std::endl;
+                server = false;
             }
         });
     tgui::Button::Ptr listenButton = tgui::Button::create();
@@ -74,6 +76,12 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
         {
             listener.setBlocking(false);
             listener.listen(53000);
+            auto status = listener.accept(client);
+            if (status == sf::Socket::Status::Done)
+            {
+                std::cout << "Client succesfully connected with address " << client.getRemoteAddress() << std::endl;
+                server = true;
+            }
         });
     tgui::TextBox::Ptr message = tgui::TextBox::create();
     message->setDefaultText("message...");
@@ -87,7 +95,14 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
             std::string data = message->getText();
             sf::Packet packet;
             packet.append(data.c_str(), sizeof(data));
-            client.send(packet);
+            if (server)
+            {
+                client.send(packet);
+            }
+            else
+            {
+                socket.send(packet);
+            }
         });
     gui.add(sendButton);
     gui.add(message);
@@ -104,12 +119,11 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 window.close();
             }
         }
-        auto status = listener.accept(client);
-        if (status == sf::Socket::Status::Done)
+        
+        sf::Packet receivedPacket;
+        auto receiveStatus = client.receive(receivedPacket);
+        if  (receiveStatus == sf::Socket::Status::Done)
         {
-            std::cout << "Client succesfully connected with address " << client.getRemoteAddress() << std::endl;
-            sf::Packet receivedPacket;
-            client.receive(receivedPacket);
             char* receivedData = (char*)receivedPacket.getData();
             std::cout << receivedData << std::endl;
         }
