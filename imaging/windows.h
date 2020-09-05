@@ -9,6 +9,8 @@ namespace windows {
 		void showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui);
 		void showChatWindow(sf::TcpSocket& socket);
 		//void playGame();
+	private:
+		void addMessageToScreen(std::string message, tgui::Gui& gui, const sf::RenderWindow& window, bool position); // bool position false == left and true == right
 	};
 
 	

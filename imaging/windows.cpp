@@ -1,8 +1,7 @@
 #include "windows.h"
-#include "TGUI/TGUI.hpp"
 #include "imaging.h"
+#include <thread>
 #include <iostream>
-#include "SFML/Network.hpp"
 
 void windows::Chess::showChatWindow(sf::TcpSocket& socket)
 {
@@ -23,9 +22,12 @@ void windows::Chess::showChatWindow(sf::TcpSocket& socket)
             sf::Packet packet;
             packet.append(message.c_str(), sizeof(message));
             socket.send(packet);
+            // add the message to the screen
+            addMessageToScreen(message, gui, window, true);
+            messageBox->setText("");
         });
-    gui.add(messageBox);
-    gui.add(sendButton);
+    gui.add(messageBox,"MessageBox");
+    gui.add(sendButton,"SendButton");
     while (window.isOpen())
     {
         while(window.pollEvent(event))
@@ -41,12 +43,45 @@ void windows::Chess::showChatWindow(sf::TcpSocket& socket)
         if (status == sf::Socket::Status::Done)
         {
             char* message = (char*)receivedPacket.getData();
-            std::cout << message << std::endl;
+            addMessageToScreen(message, gui, window, false);
         }
         window.clear(sf::Color::White);
         gui.draw();
         window.display();
     }
+}
+
+void windows::Chess::addMessageToScreen(std::string message, tgui::Gui& gui, const sf::RenderWindow& window, bool position)
+{
+    int margin = 10;
+    tgui::Label::Ptr messageLabel = tgui::Label::create();
+    messageLabel->setText(message);
+    tgui::Padding padding(5);
+    auto messageLabelStyle = messageLabel->getRenderer();
+    messageLabelStyle->setBorderColor(tgui::Color::Black);
+    messageLabelStyle->setPadding(padding);
+    if (position)
+    {
+        messageLabel->setPosition(window.getSize().x - messageLabel->getSize().x-margin, window.getSize().y - 50 - messageLabel->getSize().y - margin);
+        messageLabelStyle->setBackgroundColor(sf::Color::Color(3, 152, 252));
+    }
+    else
+    {
+        messageLabel->setPosition(0+margin, window.getSize().y - 50 - messageLabel->getSize().y - margin);
+        messageLabelStyle->setBackgroundColor(sf::Color::Color(147,157,163));
+    }
+    // move up all other messages
+    for (tgui::Widget::Ptr widget : gui.getWidgets())
+    {
+        std::string name = widget->getWidgetName();
+        std::cout << name << std::endl;
+        if (widget->getWidgetName() == "")
+        {
+            auto position = widget->getPosition();
+            widget->setPosition(position.x, position.y - messageLabel->getSize().y - margin);
+        }
+    }
+    gui.add(messageLabel);
 }
 
 void windows::Chess::showMenu() 
@@ -111,7 +146,9 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 std::cout << "Connected succesfully to " << ipaddress << std::endl;
                 server = false;
                 socket.setBlocking(false);
-                this->showChatWindow(socket);
+                std::thread chatThread(&Chess::showChatWindow, this, std::ref(socket));
+                chatThread.join();
+                //this->showChatWindow(socket);
             }
         });
     tgui::Button::Ptr listenButton = tgui::Button::create();
@@ -131,22 +168,6 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 this->showChatWindow(socket);
             }
         });
-    tgui::TextBox::Ptr message = tgui::TextBox::create();
-    message->setDefaultText("message...");
-    message->setSize(100, 40);
-    message->setPosition(0, window.getSize().y - message->getSize().y);
-    tgui::Button::Ptr sendButton = tgui::Button::create();
-    sendButton->setText("Send");
-    sendButton->setPosition(message->getSize().x, window.getSize().y - sendButton->getSize().y);
-    sendButton->connect("Clicked", [&]()
-        {
-            std::string data = message->getText();
-            sf::Packet packet;
-            packet.append(data.c_str(), sizeof(data));
-            socket.send(packet);
-        });
-    gui.add(sendButton);
-    gui.add(message);
     gui.add(listenButton);
     gui.add(serverAdress);
     gui.add(connectButton);
@@ -159,14 +180,6 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
             {
                 window.close();
             }
-        }
-        
-        sf::Packet receivedPacket;
-        auto receiveStatus = socket.receive(receivedPacket);
-        if  (receiveStatus == sf::Socket::Status::Done)
-        {
-            char* receivedData = (char*)receivedPacket.getData();
-            std::cout << receivedData << std::endl;
         }
         window.clear(sf::Color::White);
         gui.draw();
