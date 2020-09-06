@@ -59,13 +59,6 @@ void network::ChessGameNetwork::handleInput()
 					removeFocus();
 					chess::switchTurns(this->chessboard);
 					std::cout << "turn: " << this->chessboard.getTurn() << std::endl;
-					// check for checkmate
-					//std::cout << "Checkmate ? ";
-					//this->chessboard.setCheckMate(chess::checkCheckMate(this->chessboard.getTiles(), this->chessboard.getTurn()));
-					//auto bestMove = getBestMove(this->chessboard,3  ,true);
-					//std::cout << "Best move: " << " from " << bestMove.first << " to " << bestMove.second << std::endl;
-					//chess::move(this->chessboard.getTiles(), bestMove.first, bestMove.second);
-					//chess::switchTurns(this->chessboard);
 				}
 				else if (board[x][y].tile->pawn != 0)
 				{
@@ -173,6 +166,41 @@ void network::ChessGameNetwork::promotePawn(chess::Tile* pawn)
 			tile.draw(promoteWindow, this->tmanager);
 		}
 		promoteWindow.display();
+	}
+}
+
+void network::ChessGameNetwork::setupPawns()
+{
+	// real setup
+	for (int i = 0; i < 8; i++) this->board[i][0].tile->color = 0;
+	this->board[0][0].tile->pawn = 2;
+	this->board[1][0].tile->pawn = 3;
+	this->board[2][0].tile->pawn = 4;
+	this->board[4][0].tile->pawn = 6;
+	this->board[3][0].tile->pawn = 5;
+	this->board[5][0].tile->pawn = 4;
+	this->board[6][0].tile->pawn = 3;
+	this->board[7][0].tile->pawn = 2;
+
+	for (int i = 0; i < 8; i++)
+	{
+		board[i][1].tile->pawn = 1;
+		board[i][1].tile->color = 0;
+	}
+
+	for (int i = 0; i < 8; i++) this->board[i][7].tile->color = 1;
+	this->board[0][7].tile->pawn = 2;
+	this->board[1][7].tile->pawn = 3;
+	this->board[2][7].tile->pawn = 4;
+	this->board[4][7].tile->pawn = 6;
+	this->board[3][7].tile->pawn = 5;
+	this->board[5][7].tile->pawn = 4;
+	this->board[6][7].tile->pawn = 3;
+	this->board[7][7].tile->pawn = 2;
+	for (int i = 0; i < 8; i++)
+	{
+		board[i][6].tile->pawn = 1;
+		board[i][6].tile->color = 1;
 	}
 }
 

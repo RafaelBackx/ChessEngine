@@ -198,6 +198,7 @@ void windows::Chess::startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::Tcp
     window.clear();
     gui.removeAllWidgets();
     network::ChessGameNetwork chessGameNetwork(socket);
+    chessGameNetwork.run();
 }
 
 //void windows::NetworkTest::showConnectMenu() 
