@@ -8,6 +8,7 @@ namespace windows {
 		void showMenu();
 		void showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui);
 		void showChatWindow(sf::TcpSocket& socket);
+		void startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::TcpSocket& socket);
 		//void playGame();
 	private:
 		void addMessageToScreen(std::string message, tgui::Gui& gui, const sf::RenderWindow& window, bool position); // bool position false == left and true == right
@@ -15,9 +16,9 @@ namespace windows {
 
 	
 
-	class NetworkTest {
+	/*class NetworkTest {
 	public:
 		void showConnectMenu();
-	};
+	};*/
 }
 #endif

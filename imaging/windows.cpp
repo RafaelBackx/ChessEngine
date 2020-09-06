@@ -2,6 +2,7 @@
 #include "imaging.h"
 #include <thread>
 #include <iostream>
+#include "..//network/network.h"
 
 void windows::Chess::showChatWindow(sf::TcpSocket& socket)
 {
@@ -146,9 +147,9 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 std::cout << "Connected succesfully to " << ipaddress << std::endl;
                 server = false;
                 socket.setBlocking(false);
-                std::thread chatThread(&Chess::showChatWindow, this, std::ref(socket));
-                chatThread.join();
+                std::thread(&Chess::showChatWindow, this, std::ref(socket)).detach();
                 //this->showChatWindow(socket);
+                //this->startGame(window,gui);
             }
         });
     tgui::Button::Ptr listenButton = tgui::Button::create();
@@ -165,8 +166,9 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 std::cout << "Client succesfully connected with address " << socket.getRemoteAddress() << std::endl;
                 server = true;
                 socket.setBlocking(false);
-                std::thread chatThread(&Chess::showChatWindow, this, std::ref(socket));
+                std::thread (&Chess::showChatWindow, this, std::ref(socket)).detach();
                 //this->showChatWindow(socket);
+                //this->startGame(window, gui);
             }
         });
     gui.add(listenButton);
@@ -188,71 +190,79 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
     }
 }
 
-void windows::NetworkTest::showConnectMenu() 
+void windows::Chess::startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::TcpSocket& socket)
 {
-    // start listening for tcp connections on the main pc on port 53000
-    sf::TcpListener listener;
-    listener.listen(53000);
-    listener.setBlocking(false);
-    sf::TcpSocket client;
-    std::cout << "waiting for a connection..." << std::endl;
-
-
-
-    sf::RenderWindow window({ 800,800 }, "Network test");
-    tgui::Gui gui;
-    gui.setTarget(window);
-    sf::Event event;
-    tgui::Button::Ptr clientConnect = tgui::Button::create();
-    clientConnect->setText("Connect to server");
-    auto buttonstyle = clientConnect->getRenderer();
-    buttonstyle->setBackgroundColor(tgui::Color::Black);
-    buttonstyle->setTextColor(tgui::Color::White);
-    clientConnect->connect("Clicked", [&]()
-        {
-            sf::TcpSocket socket;
-            sf::Socket::Status status = socket.connect("192.168.0.125", 53000);
-            if (status == sf::Socket::Done )
-            {
-                std::cout << "connected succesfully with server" << std::endl;
-                sf::Packet data;
-                std::string message = "hello from client";
-                data.append(message.c_str(), sizeof(message));
-                socket.send(data);
-                socket.receive(data);
-                void* receivedData = const_cast<void*>(data.getData());
-                std::string* receivedMessage = reinterpret_cast<std::string*>(receivedData);
-                std::cout << *receivedMessage << std::endl;
-            }
-        });
-    gui.add(clientConnect);
-    while(window.isOpen())
-    {
-        while(window.pollEvent(event))
-        {
-            gui.handleEvent(event);
-            if(event.type == sf::Event::Closed)
-            {
-                window.close();
-            }
-        }
-        sf::Socket::Status status = listener.accept(client);
-        //std::cout << status << std::endl;
-        if (status == sf::Socket::Status::Done)
-        {
-            std::cout << "Client has connected " << client.getRemoteAddress() << std::endl;
-            sf::Packet receivedPacket;
-            client.receive(receivedPacket);
-            const void* data = receivedPacket.getData();
-            char* message = (char*)data;
-            std::cout << message << std::endl;
-            std::string response = "Hello from server";
-            sf::Packet packet;
-            packet.append(response.c_str(), sizeof(response));
-            client.send(packet);
-        }
-        window.clear(sf::Color::White);
-        gui.draw();
-        window.display();
-    }
+    //clear the screen
+    window.clear();
+    gui.removeAllWidgets();
+    network::ChessGameNetwork chessGameNetwork(socket);
 }
+
+//void windows::NetworkTest::showConnectMenu() 
+//{
+//    // start listening for tcp connections on the main pc on port 53000
+//    sf::TcpListener listener;
+//    listener.listen(53000);
+//    listener.setBlocking(false);
+//    sf::TcpSocket client;
+//    std::cout << "waiting for a connection..." << std::endl;
+//
+//
+//
+//    sf::RenderWindow window({ 800,800 }, "Network test");
+//    tgui::Gui gui;
+//    gui.setTarget(window);
+//    sf::Event event;
+//    tgui::Button::Ptr clientConnect = tgui::Button::create();
+//    clientConnect->setText("Connect to server");
+//    auto buttonstyle = clientConnect->getRenderer();
+//    buttonstyle->setBackgroundColor(tgui::Color::Black);
+//    buttonstyle->setTextColor(tgui::Color::White);
+//    clientConnect->connect("Clicked", [&]()
+//        {
+//            sf::TcpSocket socket;
+//            sf::Socket::Status status = socket.connect("192.168.0.125", 53000);
+//            if (status == sf::Socket::Done )
+//            {
+//                std::cout << "connected succesfully with server" << std::endl;
+//                sf::Packet data;
+//                std::string message = "hello from client";
+//                data.append(message.c_str(), sizeof(message));
+//                socket.send(data);
+//                socket.receive(data);
+//                void* receivedData = const_cast<void*>(data.getData());
+//                std::string* receivedMessage = reinterpret_cast<std::string*>(receivedData);
+//                std::cout << *receivedMessage << std::endl;
+//            }
+//        });
+//    gui.add(clientConnect);
+//    while(window.isOpen())
+//    {
+//        while(window.pollEvent(event))
+//        {
+//            gui.handleEvent(event);
+//            if(event.type == sf::Event::Closed)
+//            {
+//                window.close();
+//            }
+//        }
+//        sf::Socket::Status status = listener.accept(client);
+//        //std::cout << status << std::endl;
+//        if (status == sf::Socket::Status::Done)
+//        {
+//            std::cout << "Client has connected " << client.getRemoteAddress() << std::endl;
+//            sf::Packet receivedPacket;
+//            client.receive(receivedPacket);
+//            const void* data = receivedPacket.getData();
+//            char* message = (char*)data;
+//            std::cout << message << std::endl;
+//            std::string response = "Hello from server";
+//            sf::Packet packet;
+//            packet.append(response.c_str(), sizeof(response));
+//            client.send(packet);
+//        }
+//        window.clear(sf::Color::White);
+//        gui.draw();
+//        window.display();
+//    }
+//}
