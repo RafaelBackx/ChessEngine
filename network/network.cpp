@@ -64,11 +64,14 @@ void network::ChessGameNetwork::handleInput()
 				{
 					removeFocus();
 					board[x][y].state = 1;
-					auto moves = getMoves(this->chessboard.getTiles(), this->chessboard.getTurn(), Position(x, y));
-					chess::removeCheck(moves, this->chessboard.getTiles(), Position(x, y));
-					for (Position pos : moves)
+					if (board[x][y].tile->color == this->color)
 					{
-						this->board[pos.x][pos.y].state = 2;
+						auto moves = getMoves(this->chessboard.getTiles(), this->chessboard.getTurn(), Position(x, y));
+						chess::removeCheck(moves, this->chessboard.getTiles(), Position(x, y));
+						for (Position pos : moves)
+						{
+							this->board[pos.x][pos.y].state = 2;
+						}
 					}
 				}
 			}

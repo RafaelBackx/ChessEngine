@@ -21,6 +21,7 @@ namespace network
 		std::vector<chess::Move> history;
 		int historyIndex=0;
 		bool turn = true;
+		bool color; // this will determine who is white and who is black
 		sf::RenderWindow window;
 		tgui::Gui gui;
 		std::array<std::array<imagingTile, 8>, 8> board;
@@ -31,7 +32,7 @@ namespace network
 		int widthOffset = 100;
 		TextureManager tmanager;
 	public:
-		ChessGameNetwork(sf::TcpSocket& socket) : socket(socket)
+		ChessGameNetwork(sf::TcpSocket& socket, bool color) : socket(socket), color(color)
 		{
 			window.create(sf::VideoMode(windowWidth + 2 * widthOffset, windowHeight), "Chess game over network - " + socket.getRemoteAddress().toString());
 			gui.setTarget(window);

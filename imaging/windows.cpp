@@ -147,7 +147,7 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 std::cout << "Connected succesfully to " << ipaddress << std::endl;
                 server = false;
                 socket.setBlocking(false);
-                this->startGame(window, gui, socket);
+                this->startGame(window, gui, socket, false);
                 //std::thread(&Chess::showChatWindow, this, std::ref(socket)).detach();
                 //this->showChatWindow(socket);
                 //this->startGame(window,gui);
@@ -167,7 +167,7 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
                 std::cout << "Client succesfully connected with address " << socket.getRemoteAddress() << std::endl;
                 server = true;
                 socket.setBlocking(false);
-                this->startGame(window, gui, socket);
+                this->startGame(window, gui, socket, true);
                 //std::thread (&Chess::showChatWindow, this, std::ref(socket)).detach();
                 //this->showChatWindow(socket);
                 //this->startGame(window, gui);
@@ -192,9 +192,9 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
     }
 }
 
-void windows::Chess::startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::TcpSocket& socket)
+void windows::Chess::startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::TcpSocket& socket, bool color)
 {
-    network::ChessGameNetwork chessGameNetwork(socket);
+    network::ChessGameNetwork chessGameNetwork(socket,color);
     chessGameNetwork.run();
 }
 
