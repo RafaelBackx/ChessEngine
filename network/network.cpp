@@ -2,6 +2,7 @@
 
 void network::ChessGameNetwork::run()
 {
+	this->socket.setBlocking(true);// turn on blocking again so when you make a move your thread is blocked until your oponent responds with his move
 	while(this->window.isOpen())
 	{
 		this->handleInput();
@@ -59,6 +60,14 @@ void network::ChessGameNetwork::handleInput()
 					removeFocus();
 					chess::switchTurns(this->chessboard);
 					std::cout << "turn: " << this->chessboard.getTurn() << std::endl;
+
+					// sendOverTcp to oponent
+					this->sendOverNetwork();
+					sf::Packet response;
+					std::cout << "Waiting response from oponent" << std::endl;
+					this->socket.receive(response);
+					// cast response data to network::NetworkPackage
+
 				}
 				else if (board[x][y].tile->pawn != 0)
 				{
