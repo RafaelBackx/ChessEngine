@@ -2,7 +2,7 @@
 
 void network::ChessGameNetwork::run()
 {
-	while(this->window->isOpen())
+	while(this->window.isOpen())
 	{
 		this->handleInput();
 		this->draw();
@@ -12,16 +12,16 @@ void network::ChessGameNetwork::run()
 void network::ChessGameNetwork::handleInput()
 {
 	sf::Event event;
-	while(this->window->pollEvent(event))
+	while(this->window.pollEvent(event))
 	{
-		this->gui->handleEvent(event);
+		this->gui.handleEvent(event);
 		//handle all events
 		switch (event.type)
 		{
 		case sf::Event::Closed:
 		{
 			//socket.disconnect(); not sure about this
-			window->close();
+			window.close();
 		}
 		case sf::Event::MouseButtonPressed:
 		{
@@ -88,17 +88,17 @@ void network::ChessGameNetwork::handleInput()
 
 void network::ChessGameNetwork::draw()
 {
-	this->window->clear(sf::Color::Color(200, 200, 200));
+	this->window.clear(sf::Color::Color(200, 200, 200));
 	for (int i = 0; i < this->board.size(); i++)
 	{
 		for (int j = 0; j < this->board[i].size(); j++)
 		{
-			board[i][j].draw(*this->window, this->tmanager);
+			board[i][j].draw(this->window, this->tmanager);
 		}
 	}
 	//draw undo and redo buttons
-	this->gui->draw();
-	this->window->display();
+	this->gui.draw();
+	this->window.display();
 }
 
 Position network::ChessGameNetwork::getFocusedTile()

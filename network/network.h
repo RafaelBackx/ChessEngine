@@ -21,8 +21,8 @@ namespace network
 		std::vector<chess::Move> history;
 		int historyIndex=0;
 		bool turn = true;
-		sf::RenderWindow* window;
-		tgui::Gui* gui;
+		sf::RenderWindow window;
+		tgui::Gui gui;
 		std::array<std::array<imagingTile, 8>, 8> board;
 		int tileWidth = 100;
 		sf::Color black_color = sf::Color::Color(118, 150, 86);
@@ -31,11 +31,10 @@ namespace network
 		int widthOffset = 100;
 		TextureManager tmanager;
 	public:
-		ChessGameNetwork(sf::RenderWindow* window, tgui::Gui* gui, sf::TcpSocket& socket) : window(window), gui(gui), socket(socket) {};
 		ChessGameNetwork(sf::TcpSocket& socket) : socket(socket)
 		{
-			window->create(sf::VideoMode(windowWidth + 2 * widthOffset, windowHeight), "Chess game over network - " + socket.getRemoteAddress().toString());
-			gui->setTarget(*window);
+			window.create(sf::VideoMode(windowWidth + 2 * widthOffset, windowHeight), "Chess game over network - " + socket.getRemoteAddress().toString());
+			gui.setTarget(window);
 		};
 		void run();
 		void draw();
