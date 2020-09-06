@@ -49,6 +49,7 @@ namespace network
 					board[i][j].tile = &this->chessboard.getTiles()[i][j];
 				}
 			}
+			setupPawns();
 		};
 		void run();
 		void draw();

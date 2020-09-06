@@ -194,9 +194,6 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
 
 void windows::Chess::startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::TcpSocket& socket)
 {
-    //clear the screen
-    window.clear();
-    gui.removeAllWidgets();
     network::ChessGameNetwork chessGameNetwork(socket);
     chessGameNetwork.run();
 }
