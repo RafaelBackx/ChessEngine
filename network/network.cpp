@@ -68,6 +68,8 @@ void network::ChessGameNetwork::handleInput()
 					this->socket.receive(response);
 					// cast response data to network::NetworkPackage
 					NetworkPackage receivedData;
+					response >> receivedData;
+					std::cout << "Data received" << std::endl;
 				}
 				else if (board[x][y].tile->pawn != 0)
 				{
@@ -237,12 +239,17 @@ void network::ChessGameNetwork::sendOverNetwork()
 	}
 }
 
-sf::Packet& operator << (sf::Packet& packet, const network::NetworkPackage& nPackage)
+sf::Packet& network::operator << (sf::Packet& packet, const network::NetworkPackage& nPackage)
 {	
 	return packet << nPackage.chessboard;
 }
 
-sf::Packet& operator << (sf::Packet& packet, const chess::ChessBoard& board)
+sf::Packet& network::operator <<(sf::Packet& packet, const chess::Tile& tile)
+{
+	return packet << tile.pawn << tile.color << tile.hasMoved;
+}
+
+sf::Packet& network::operator << (sf::Packet& packet, const chess::ChessBoard& board)
 {
 	auto tiles = board.getTiles();
 	for (int x = 0; x < 8; x++)
@@ -256,42 +263,37 @@ sf::Packet& operator << (sf::Packet& packet, const chess::ChessBoard& board)
 	return packet;
 }
 
-sf::Packet& operator << (sf::Packet& packet, const chess::Tile& tile)
-{
-	return packet << tile.pawn << tile.color << tile.hasMoved;
-}
-
-sf::Packet& operator << (sf::Packet& packet, const chess::Move& move)
+sf::Packet& network::operator <<(sf::Packet& packet, const chess::Move& move)
 {
 	return packet << move.from << move.to << move.capturedPiece;
 }
 
-sf::Packet& operator << (sf::Packet& packet, const Position& position)
+sf::Packet& network::operator <<(sf::Packet& packet, const Position& position)
 {
 	return packet << position.x << position.y;
 }
 
-sf::Packet& operator >> (sf::Packet packet, network::NetworkPackage& nPackage) 
+sf::Packet& network::operator >>(sf::Packet& packet, network::NetworkPackage& nPackage) 
 {
 	return packet >> nPackage.chessboard;
 }
 
-sf::Packet& operator >> (sf::Packet packet, chess::Tile& tile) 
+sf::Packet& network::operator >>(sf::Packet& packet, chess::Tile& tile) 
 {
 	return packet >> tile.pawn >> tile.color >> tile.hasMoved;
 }
 
-sf::Packet& operator >> (sf::Packet packet, chess::Move& tile) 
+sf::Packet& network::operator >>(sf::Packet& packet, chess::Move& tile) 
 {
 	return packet >> tile.from >> tile.to >> tile.capturedPiece;
 }
 
-sf::Packet& operator >> (sf::Packet packet, Position& tile) 
+sf::Packet& network::operator >>(sf::Packet& packet, Position& tile) 
 {
 	return packet >> tile.x >> tile.y;
 }
 
-sf::Packet& operator >> (sf::Packet packet, chess::ChessBoard& board) 
+sf::Packet& network::operator >>(sf::Packet& packet, chess::ChessBoard& board) 
 {
 	auto tiles = board.getTiles();
 	for (int x = 0; x < 8; x++)
