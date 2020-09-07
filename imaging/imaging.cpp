@@ -36,7 +36,7 @@ void ChessGame::promotePawn(chess::Tile* pawn)
 	int counter = 0;
 	for (int i=0;i<4;i++)
 	{
-		sf::Color c = counter % 2 == 0 ? this->black_color : this->white_color;
+		sf::Color c = counter % 2 == 0 ? this->style.blackTileColor : this->style.whiteTileColor;
 		imagingTile tile;
 		chess::Tile t(pawn->color, 0);
 		tiles[i] = t;
@@ -231,8 +231,10 @@ void imagingTile::draw(sf::RenderWindow& window, TextureManager& tManager)
 	{
 		this->rect.setFillColor(possibleMoveColor);
 	}
-	this->rect.setTexture(tManager.getTexture(this->tile->pawn, this->tile->color));
+	this->sprite.setTexture(tManager.getTexture(this->tile->pawn, this->tile->color));
 	window.draw(this->rect);
+	if (this->tile->pawn != 0)
+		window.draw(this->sprite);
 }
 
 void ChessGame::removeFocus()
@@ -260,8 +262,9 @@ Position ChessGame::getFocusedTile()
 	}
 }
 
-ChessGame::ChessGame() 
+ChessGame::ChessGame(StyleManager style) 
 {
+	this->style = style;
 	undo = tgui::Button::create();
 	redo = tgui::Button::create();
 	gui.add(undo);
@@ -299,17 +302,19 @@ ChessGame::ChessGame()
 	// setup a chess game window with some space left for both players to potentially add a timer and show what pieces where captured
 	// lets keep a space of 200 pixels on both sides
 	window.create(sf::VideoMode(windowWidth+widthOffset*2, windowHeight), "Chess");
-	sf::Color c = black_color;
+	sf::Color c = this->style.blackTileColor;
 	int colorCounter = 1;
 	for (int i = 0; i < this->board.size(); i++)
 	{
 		for (int j = 0; j < this->board[i].size(); j++)
 		{
-			c = (i + j) % 2 == 0 ? this->black_color : this->white_color;
+			c = (i + j) % 2 == 0 ? this->style.blackTileColor : this->style.whiteTileColor;
 			board[i][j].rect = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
+			board[i][j].sprite = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
 			board[i][j].rect.setFillColor(c);
 			board[i][j].defaultColor = c;
 			board[i][j].rect.setPosition((i * tileWidth)+widthOffset, j * tileWidth);
+			board[i][j].sprite.setPosition((i * tileWidth)+widthOffset, j * tileWidth);
 			board[i][j].pos = Position(i, j);
 			board[i][j].tile = &this->chessboard.getTiles()[i][j];
 		}

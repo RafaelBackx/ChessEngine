@@ -43,9 +43,11 @@ namespace network
 				{
 					c = (i + j) % 2 == 0 ? this->black_color : this->white_color;
 					board[i][j].rect = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
+					board[i][j].sprite = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
 					board[i][j].rect.setFillColor(c);
 					board[i][j].defaultColor = c;
 					board[i][j].rect.setPosition((i * tileWidth) + widthOffset, j * tileWidth);
+					board[i][j].sprite.setPosition((i * tileWidth) + widthOffset, j * tileWidth);
 					board[i][j].pos = Position(i, j);
 					board[i][j].tile = &this->chessboard.getTiles()[i][j];
 				}

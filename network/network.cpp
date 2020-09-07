@@ -218,5 +218,5 @@ void network::ChessGameNetwork::setupPawns()
 
 void network::ChessGameNetwork::sendOverNetwork()
 {
-
+	this->draw();
 }

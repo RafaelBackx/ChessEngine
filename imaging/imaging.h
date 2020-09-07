@@ -5,10 +5,20 @@
 #include "..//game/chess.h"
 #include "TextureManager.h"
 #include <TGUI/TGUI.hpp>
+
+struct StyleManager
+{
+	sf::Color blackTileColor = sf::Color(127,184,132);
+	sf::Color whiteTileColor = sf::Color(238, 238, 210);
+	std::string pawnStyle;
+};
+
+
 class imagingTile
 {
 public:
 	chess::Tile* tile;
+	sf::RectangleShape sprite;
 	sf::RectangleShape rect;
 	Position pos;
 	sf::Color defaultColor;
@@ -18,7 +28,6 @@ public:
 	void draw(sf::RenderWindow& window, TextureManager& tmanager);
 	//std::vector<Position> getMoves(std::array<std::array<chess::Tile, 8>, 8>& board, int turn);
 };
-
 
 class ChessGame
 {
@@ -30,19 +39,19 @@ private:
 	sf::RenderWindow window;
 	std::array<std::array<imagingTile, 8>, 8> board;
 	int tileWidth = 100;
-	sf::Color black_color = sf::Color::Color(118, 150, 86);
-	sf::Color white_color = sf::Color::Color(238, 238, 210);
+	StyleManager style;
 	int windowWidth = 800, windowHeight = 800;
 	int widthOffset = 100;
 	tgui::Button::Ptr undo, redo;
 	tgui::Gui gui{ window };
 public:
-	ChessGame();
+	ChessGame(StyleManager style);
 	//ChessGame(sf::RenderWindow& window);
 	void run();
 	void draw();
 	void handleInput();
 	void promotePawn(chess::Tile* pawn);
+	void setStyle(StyleManager style) { this->style = style; }
 private:
 	void setupPawns();
 	void removeFocus();

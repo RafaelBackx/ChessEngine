@@ -85,26 +85,30 @@ void windows::Chess::addMessageToScreen(std::string message, tgui::Gui& gui, con
     gui.add(messageLabel);
 }
 
-void windows::Chess::showMenu() 
+void windows::Chess::showMenu(sf::RenderWindow& window, tgui::Gui& gui) 
 {
-    sf::RenderWindow window( {400, 600}, "Window" );
-    tgui::Gui gui{ window }; // Create the gui and attach it to the window
+    gui.removeAllWidgets();
     tgui::Button::Ptr playButton = tgui::Button::create();
     playButton->setText("PLAY");
-    playButton->setPosition(window.getSize().x * 0.5, window.getSize().y * 0.333);
+    playButton->setPosition(window.getSize().x * 0.5 - playButton->getSize().x*0.5, window.getSize().y * 0.25);
     auto buttonstyle = playButton->getSharedRenderer();
     buttonstyle->setBackgroundColor(tgui::Color::Black);
     buttonstyle->setTextColor(tgui::Color::White);
     playButton->connect("Clicked", [&]() 
         {
             std::cout << "the playbutton was pressed" << std::endl;
-            ChessGame game;
+            ChessGame game(this->style);
             game.run();
         });
     tgui::Button::Ptr network = tgui::Button::create();
     network->setText("Play over Network");
-    network->setPosition(window.getSize().x * 0.5, window.getSize().y * 0.5);
+    network->setPosition(window.getSize().x * 0.5 - network->getSize().x * 0.5, window.getSize().y * 0.5);
     network->connect("Clicked", &Chess::showNetworkMenu, this,std::ref(window), std::ref(gui));
+    tgui::Button::Ptr style = tgui::Button::create();
+    style->setText("Customize style");
+    style->setPosition({ window.getSize().x * 0.5 - style->getSize().x * 0.5, window.getSize().y * 0.75 });
+    style->connect("Clicked", &Chess::showCustomizeStyleWindow,this, std::ref(window), std::ref(gui));
+    gui.add(style);
     gui.add(playButton);
     gui.add(network);
     while (window.isOpen())
@@ -196,6 +200,65 @@ void windows::Chess::startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::Tcp
 {
     network::ChessGameNetwork chessGameNetwork(socket,color);
     chessGameNetwork.run();
+}
+
+void windows::Chess::showCustomizeStyleWindow(sf::RenderWindow& window, tgui::Gui& gui)
+{
+    // clear the screen of any preplaced widgets
+    gui.removeAllWidgets();
+    tgui::Button::Ptr backToMenu = tgui::Button::create();
+    backToMenu->setText("Back to menu");
+    backToMenu->setPosition({ 10,window.getSize().y - 10 - backToMenu->getSize().y });
+    backToMenu->connect("Clicked", &Chess::showMenu, this, std::ref(window), std::ref(gui));
+    //RGB sliders 
+    tgui::Slider::Ptr r = tgui::Slider::create();
+    r->setMinimum(0);
+    r->setMaximum(255);
+    r->setPosition({ window.getSize().x * 0.5 - r->getSize().x*0.5,window.getSize().y * 0.1 });
+    r->getRenderer()->setThumbColor(tgui::Color::Red);
+    tgui::Slider::Ptr g = tgui::Slider::create();
+    g->setMinimum(0);
+    g->setMaximum(255);
+    g->setPosition({ window.getSize().x * 0.5 - g->getSize().x * 0.5,window.getSize().y * 0.2 });
+    g->getRenderer()->setThumbColor(tgui::Color::Green);
+    tgui::Slider::Ptr b = tgui::Slider::create();
+    b->setMinimum(0);
+    b->setMaximum(255);
+    b->setPosition({ window.getSize().x * 0.5 - b->getSize().x * 0.5,window.getSize().y *0.3 });
+    b->getRenderer()->setThumbColor(tgui::Color::Blue);
+    tgui::Label::Ptr color = tgui::Label::create();
+    color->setSize(r->getSize());
+    color->setPosition({ window.getSize().x * 0.5 - color->getSize().x * 0.5,window.getSize().y * 0.4 });
+    tgui::Button::Ptr saveSettings = tgui::Button::create();
+    saveSettings->setText("Save");
+    saveSettings->setPosition({ window.getSize().x * 0.5 - saveSettings->getSize().x * 0.5, window.getSize().y * 0.5 });
+    saveSettings->connect("Clicked", [&]()
+        {
+            this->style.blackTileColor = sf::Color(r->getValue(), g->getValue(), b->getValue());
+        });
+    gui.add(saveSettings);
+    gui.add(color);
+    gui.add(b);
+    gui.add(g);
+    gui.add(r);
+    gui.add(backToMenu);
+    sf::Event event;
+    while(window.isOpen())
+    {
+        while(window.pollEvent(event))
+        {
+            gui.handleEvent(event);
+            if (event.type == sf::Event::Closed)
+            {
+                window.close();
+            }
+        }
+        color->getRenderer()->setBackgroundColor(tgui::Color(r->getValue(), g->getValue(), b->getValue()));
+        window.clear(sf::Color::White);
+        gui.draw();
+        window.display();
+    }
+
 }
 
 //void windows::NetworkTest::showConnectMenu() 
