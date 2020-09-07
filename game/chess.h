@@ -53,9 +53,9 @@ namespace chess
 	{
 	private:
 		std::array<std::array<chess::Tile, 8>, 8> tiles;
-		int turn = 1;
 		bool checkMate = false;
 	public:
+		int turn = 1;
 		ChessBoard(){}
 		std::array<std::array<chess::Tile, 8>, 8> & getTiles() { return tiles; }
 		const std::array<std::array<chess::Tile, 8>, 8> & getTiles() const { return tiles; }

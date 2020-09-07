@@ -12,11 +12,17 @@ namespace network
 		//int historyIndex;
 	};
 
-	sf::Packet& operator << (sf::Packet packet, const NetworkPackage nPackage);
-	sf::Packet& operator << (sf::Packet packet, const chess::Tile tile);
-	sf::Packet& operator << (sf::Packet packet, const chess::Move tile);
-	sf::Packet& operator << (sf::Packet packet, const Position tile);
-	sf::Packet& operator << (sf::Packet packet, const chess::ChessBoard board);
+	sf::Packet& operator << (sf::Packet packet, const NetworkPackage& nPackage);
+	sf::Packet& operator << (sf::Packet packet, const chess::Tile& tile);
+	sf::Packet& operator << (sf::Packet packet, const chess::Move& tile);
+	sf::Packet& operator << (sf::Packet packet, const Position& tile);
+	sf::Packet& operator << (sf::Packet packet, const chess::ChessBoard& board);
+
+	sf::Packet& operator >> (sf::Packet packet, NetworkPackage& nPackage);
+	sf::Packet& operator >> (sf::Packet packet, chess::Tile& tile);
+	sf::Packet& operator >> (sf::Packet packet, chess::Move& tile);
+	sf::Packet& operator >> (sf::Packet packet, Position& tile);
+	sf::Packet& operator >> (sf::Packet packet, chess::ChessBoard& board);
 
 	class ChessGameNetwork
 	{

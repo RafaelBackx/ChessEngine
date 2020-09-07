@@ -237,12 +237,12 @@ void network::ChessGameNetwork::sendOverNetwork()
 	}
 }
 
-sf::Packet& operator << (sf::Packet& packet, const network::NetworkPackage nPackage)
+sf::Packet& operator << (sf::Packet& packet, const network::NetworkPackage& nPackage)
 {	
 	return packet << nPackage.chessboard;
 }
 
-sf::Packet& operator << (sf::Packet& packet, const chess::ChessBoard board)
+sf::Packet& operator << (sf::Packet& packet, const chess::ChessBoard& board)
 {
 	auto tiles = board.getTiles();
 	for (int x = 0; x < 8; x++)
@@ -252,21 +252,55 @@ sf::Packet& operator << (sf::Packet& packet, const chess::ChessBoard board)
 			packet << tiles[x][y];
 		}
 	}
-	packet << board.getTurn();
+	packet << board.turn;
 	return packet;
 }
 
-sf::Packet& operator << (sf::Packet& packet, const chess::Tile tile)
+sf::Packet& operator << (sf::Packet& packet, const chess::Tile& tile)
 {
 	return packet << tile.pawn << tile.color << tile.hasMoved;
 }
 
-sf::Packet& operator << (sf::Packet& packet, const chess::Move move)
+sf::Packet& operator << (sf::Packet& packet, const chess::Move& move)
 {
 	return packet << move.from << move.to << move.capturedPiece;
 }
 
-sf::Packet& operator << (sf::Packet& packet, const Position position)
+sf::Packet& operator << (sf::Packet& packet, const Position& position)
 {
 	return packet << position.x << position.y;
+}
+
+sf::Packet& operator >> (sf::Packet packet, network::NetworkPackage& nPackage) 
+{
+	return packet >> nPackage.chessboard;
+}
+
+sf::Packet& operator >> (sf::Packet packet, chess::Tile& tile) 
+{
+	return packet >> tile.pawn >> tile.color >> tile.hasMoved;
+}
+
+sf::Packet& operator >> (sf::Packet packet, chess::Move& tile) 
+{
+	return packet >> tile.from >> tile.to >> tile.capturedPiece;
+}
+
+sf::Packet& operator >> (sf::Packet packet, Position& tile) 
+{
+	return packet >> tile.x >> tile.y;
+}
+
+sf::Packet& operator >> (sf::Packet packet, chess::ChessBoard& board) 
+{
+	auto tiles = board.getTiles();
+	for (int x = 0; x < 8; x++)
+	{
+		for (int y = 0; y < 8; y++)
+		{
+			packet >> tiles[x][y];
+		}
+	}
+	packet >> board.turn;
+	return packet;
 }
