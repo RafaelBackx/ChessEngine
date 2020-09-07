@@ -67,7 +67,7 @@ void network::ChessGameNetwork::handleInput()
 					std::cout << "Waiting response from oponent" << std::endl;
 					this->socket.receive(response);
 					// cast response data to network::NetworkPackage
-
+					NetworkPackage receivedData;
 				}
 				else if (board[x][y].tile->pawn != 0)
 				{
@@ -219,4 +219,54 @@ void network::ChessGameNetwork::setupPawns()
 void network::ChessGameNetwork::sendOverNetwork()
 {
 	this->draw();
+	NetworkPackage nPackage;
+	nPackage.chessboard = this->chessboard;
+	//nPackage.history = this->history;
+	//nPackage.historyIndex = this->historyIndex;
+	sf::Packet packet;
+	packet << nPackage;
+	//packet.append(&nPackage, sizeof(nPackage));
+	auto status = this->socket.send(packet);
+	if (status == sf::Socket::Partial)
+	{
+		this->socket.send(packet);
+	}
+	else if(status == sf::Socket::Done)
+	{
+		std::cout << "Packet sent succesfully" << std::endl;
+	}
+}
+
+sf::Packet& operator << (sf::Packet& packet, const network::NetworkPackage nPackage)
+{	
+	return packet << nPackage.chessboard;
+}
+
+sf::Packet& operator << (sf::Packet& packet, const chess::ChessBoard board)
+{
+	auto tiles = board.getTiles();
+	for (int x = 0; x < 8; x++)
+	{
+		for (int y = 0; y < 8; y++)
+		{
+			packet << tiles[x][y];
+		}
+	}
+	packet << board.getTurn();
+	return packet;
+}
+
+sf::Packet& operator << (sf::Packet& packet, const chess::Tile tile)
+{
+	return packet << tile.pawn << tile.color << tile.hasMoved;
+}
+
+sf::Packet& operator << (sf::Packet& packet, const chess::Move move)
+{
+	return packet << move.from << move.to << move.capturedPiece;
+}
+
+sf::Packet& operator << (sf::Packet& packet, const Position position)
+{
+	return packet << position.x << position.y;
 }

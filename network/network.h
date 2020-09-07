@@ -8,10 +8,15 @@ namespace network
 	struct NetworkPackage
 	{
 		chess::ChessBoard chessboard;
-		int turn;
-		std::vector<chess::Move> history;
-		int historyIndex;
+		//std::vector<chess::Move> history;
+		//int historyIndex;
 	};
+
+	sf::Packet& operator << (sf::Packet packet, const NetworkPackage nPackage);
+	sf::Packet& operator << (sf::Packet packet, const chess::Tile tile);
+	sf::Packet& operator << (sf::Packet packet, const chess::Move tile);
+	sf::Packet& operator << (sf::Packet packet, const Position tile);
+	sf::Packet& operator << (sf::Packet packet, const chess::ChessBoard board);
 
 	class ChessGameNetwork
 	{

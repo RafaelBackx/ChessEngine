@@ -58,6 +58,7 @@ namespace chess
 	public:
 		ChessBoard(){}
 		std::array<std::array<chess::Tile, 8>, 8> & getTiles() { return tiles; }
+		const std::array<std::array<chess::Tile, 8>, 8> & getTiles() const { return tiles; }
 		int getTurn() const { return turn; }
 		void setTurn(int turn) { this->turn = turn; }
 		void setCheckMate(bool checkmate) { this->checkMate = checkmate; }
