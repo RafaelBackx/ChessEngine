@@ -5,8 +5,8 @@ void network::ChessGameNetwork::run()
 	this->socket.setBlocking(true);// turn on blocking again so when you make a move your thread is blocked until your oponent responds with his move
 	while(this->window.isOpen())
 	{
-		this->handleInput();
 		this->draw();
+		this->handleInput();
 	}
 }
 
@@ -15,6 +15,18 @@ void network::ChessGameNetwork::handleInput()
 	sf::Event event;
 	while(this->window.pollEvent(event))
 	{
+		if (this->chessboard.getTurn() && !this->color)
+		{
+			sf::Packet response;
+			std::cout << "Waiting response from oponent" << std::endl;
+			this->socket.receive(response);
+			// cast response data to network::NetworkPackage
+			NetworkPackage receivedData;
+			response >> receivedData;
+			std::cout << "Data received" << std::endl;
+			this->chessboard = receivedData.chessboard;
+		}
+
 		this->gui.handleEvent(event);
 		//handle all events
 		switch (event.type)
@@ -63,13 +75,6 @@ void network::ChessGameNetwork::handleInput()
 
 					// sendOverTcp to oponent
 					this->sendOverNetwork();
-					sf::Packet response;
-					std::cout << "Waiting response from oponent" << std::endl;
-					this->socket.receive(response);
-					// cast response data to network::NetworkPackage
-					NetworkPackage receivedData;
-					response >> receivedData;
-					std::cout << "Data received" << std::endl;
 				}
 				else if (board[x][y].tile->pawn != 0)
 				{
@@ -227,6 +232,8 @@ void network::ChessGameNetwork::sendOverNetwork()
 	//nPackage.historyIndex = this->historyIndex;
 	sf::Packet packet;
 	packet << nPackage;
+	NetworkPackage check; // to be removed later
+	packet >> check;
 	//packet.append(&nPackage, sizeof(nPackage));
 	auto status = this->socket.send(packet);
 	if (status == sf::Socket::Partial)
@@ -303,6 +310,7 @@ sf::Packet& network::operator >>(sf::Packet& packet, chess::ChessBoard& board)
 			packet >> tiles[x][y];
 		}
 	}
+	board.tiles = tiles;
 	packet >> board.turn;
 	return packet;
 }

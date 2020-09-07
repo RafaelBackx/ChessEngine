@@ -52,10 +52,10 @@ namespace chess
 	class ChessBoard 
 	{
 	private:
-		std::array<std::array<chess::Tile, 8>, 8> tiles;
 		bool checkMate = false;
 	public:
 		int turn = 1;
+		std::array<std::array<chess::Tile, 8>, 8> tiles;
 		ChessBoard(){}
 		std::array<std::array<chess::Tile, 8>, 8> & getTiles() { return tiles; }
 		const std::array<std::array<chess::Tile, 8>, 8> & getTiles() const { return tiles; }

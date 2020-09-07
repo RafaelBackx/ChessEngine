@@ -31,7 +31,6 @@ namespace network
 		chess::ChessBoard chessboard;
 		std::vector<chess::Move> history;
 		int historyIndex=0;
-		bool turn = true;
 		bool color; // this will determine who is white and who is black
 		sf::RenderWindow window;
 		tgui::Gui gui;
