@@ -15,11 +15,13 @@ void network::ChessGameNetwork::handleInput()
 	sf::Event event;
 	while(this->window.pollEvent(event))
 	{
-		if (this->chessboard.getTurn() && !this->color)
+		this->socket.setBlocking(false);
+		//check for incoming packages
+		sf::Packet response;
+		//std::cout << "Waiting response from oponent" << std::endl;
+		auto status = this->socket.receive(response);
+		if (status == sf::Socket::Status::Done)
 		{
-			sf::Packet response;
-			std::cout << "Waiting response from oponent" << std::endl;
-			this->socket.receive(response);
 			// cast response data to network::NetworkPackage
 			NetworkPackage receivedData;
 			response >> receivedData;
@@ -225,6 +227,7 @@ void network::ChessGameNetwork::setupPawns()
 
 void network::ChessGameNetwork::sendOverNetwork()
 {
+	this->socket.setBlocking(true);
 	this->draw();
 	NetworkPackage nPackage;
 	nPackage.chessboard = this->chessboard;
