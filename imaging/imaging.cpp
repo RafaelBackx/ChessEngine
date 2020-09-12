@@ -1,5 +1,6 @@
 #include "imaging.h"
 #include "..//minimax/minimax.h"
+#include <algorithm>
 
 void ChessGame::run()
 {
@@ -20,7 +21,8 @@ void ChessGame::draw()
 			board[i][j].draw(this->window,this->textureManager);
 		}
 	}
-	//draw undo and redo buttons
+	// Draw the captured pieces
+	drawCapturedPieces();
 	this->gui.draw();
 	this->window.display();
 }
@@ -61,7 +63,6 @@ void ChessGame::promotePawn(chess::Tile* pawn)
 			if (event.type == sf::Event::MouseButtonPressed)
 			{
 				int x = event.mouseButton.x / this->tileWidth;
-				std::cout << x << std::endl;
 				pawn->pawn = tiles[x].pawn;
 				promoteWindow.close();
 			}
@@ -96,34 +97,27 @@ void ChessGame::handleInput()
 				if(board[x][y].state == 2) // clicked on a possible move
 				{
 					Position pos = getFocusedTile();
+					historyManager.addMove({ pos,{x,y},this->chessboard.getTiles()[x][y] });
 
-					if (this->historyIndex < this->history.size())
+					auto captured = chess::move(this->chessboard.getTiles(), pos, Position(x, y));
+					if (captured.pawn != 0)
 					{
-						chess::Move move = { pos, Position(x,y), this->chessboard.getTiles()[x][y] };
-						this->history[this->historyIndex++] = move;
-					}
-					else if (this->historyIndex == this->history.size())
-					{
-						this->history.push_back({ pos, Position(x,y), this->chessboard.getTiles()[x][y] });
-						this->historyIndex++;
-					}
-					else
-					{
-						std::cout << "something wrong with history index" << std::endl;
+						this->chessboard.addCapturedPiece(captured);
 					}
 
-					chess::move(this->chessboard.getTiles(), pos, Position(x, y));
 					if (this->chessboard.getTiles()[x][y].pawn == 1 && (y == 0 || y == 7))
 					{
-						std::cout << "Promoting pawn" << std::endl;
 						promotePawn(&this->chessboard.getTiles()[x][y]);
 					}
 					removeFocus();
 					chess::switchTurns(this->chessboard);
-					std::cout << "turn: " << this->chessboard.getTurn() << std::endl;
 					// check for checkmate
-					//std::cout << "Checkmate ? ";
-					//this->chessboard.setCheckMate(chess::checkCheckMate(this->chessboard.getTiles(), this->chessboard.getTurn()));
+					this->chessboard.setCheckMate(chess::checkCheckMate(this->chessboard.getTiles(), this->chessboard.getTurn()));
+					if(this->chessboard.checkMate)
+					{
+						std::string checkmate = this->chessboard.turn ? "White" : "Black";
+						std::cout << "CheckMate " << checkmate << std::endl;
+					}
 					//auto bestMove = getBestMove(this->chessboard,3  ,true);
 					//std::cout << "Best move: " << " from " << bestMove.first << " to " << bestMove.second << std::endl;
 					//chess::move(this->chessboard.getTiles(), bestMove.first, bestMove.second);
@@ -153,35 +147,32 @@ void ChessGame::setupPawns()
 {
 	// test setup
 
-	//this->board[1][2].tile->pawn = 1;
-	//this->board[1][2].tile->color = 1;
+	/*this->board[4][7].tile->pawn = 6;
+	this->board[4][7].tile->color = 1;
 
-	//this->board[5][7].tile->pawn = 1;
-	//this->board[5][7].tile->color = 1;
+	this->board[3][7].tile->pawn = 5;
+	this->board[3][7].tile->color = 1;
 
-	//this->board[2][2].tile->pawn = 1;
-	//this->board[2][2].tile->color = 0;
+	this->board[4][6].tile->pawn = 1;
+	this->board[4][6].tile->color = 1;
 
-	//this->board[7][1].tile->pawn = 6;
-	//this->board[7][1].tile->color = 0;
+	this->board[3][6].tile->pawn = 1;
+	this->board[3][6].tile->color = 1;
 
-	//this->board[7][6].tile->pawn = 6;
-	//this->board[7][6].tile->color = 1;
+	this->board[5][6].tile->pawn = 1;
+	this->board[5][6].tile->color = 1;
 
-	////this->board[4][0].tile->pawn = 3;
-	////this->board[4][0].tile->color = 0;
+	this->board[5][7].tile->pawn = 1;
+	this->board[5][7].tile->color = 1;
 
-	////this->board[5][2].tile->pawn = 1;
-	////this->board[5][2].tile->color = 1;
+	this->board[0][5].tile->pawn = 3;
+	this->board[0][5].tile->color = 0;
 
-	////this->board[7][7].tile->pawn = 1;
-	////this->board[7][7].tile->color = 1;
+	this->board[2][5].tile->pawn = 5;
+	this->board[2][5].tile->color = 0;
 
-	////this->board[4][3].tile->pawn = 6;
-	////this->board[4][3].tile->color = 1;
-
-	////this->board[0][7].tile->pawn = 6;
-	////this->board[0][7].tile->color = 0;
+	this->board[7][7].tile->pawn = 1;
+	this->board[7][7].tile->color = 1;*/
 
 
 	// real setup
@@ -195,11 +186,11 @@ void ChessGame::setupPawns()
 	this->board[6][0].tile->pawn = 3;
 	this->board[7][0].tile->pawn = 2;
 	
-	for (int i = 0; i < 8; i++)
+	/*for (int i = 0; i < 8; i++)
 	{
 		board[i][1].tile->pawn = 1;
 		board[i][1].tile->color = 0;
-	}
+	}*/
 
 	for (int i = 0; i < 8; i++) this->board[i][7].tile->color = 1;
 	this->board[0][7].tile->pawn = 2;
@@ -210,11 +201,12 @@ void ChessGame::setupPawns()
 	this->board[5][7].tile->pawn = 4;
 	this->board[6][7].tile->pawn = 3;
 	this->board[7][7].tile->pawn = 2;
-	for (int i = 0; i < 8; i++)
-	{
-		board[i][6].tile->pawn = 1;
-		board[i][6].tile->color = 1;
-	}
+
+	//for (int i = 0; i < 8; i++)
+	//{
+	//	board[i][6].tile->pawn = 1;
+	//	board[i][6].tile->color = 1;
+	//}
 }
 
 void imagingTile::draw(sf::RenderWindow& window, TextureManager& tManager)
@@ -275,32 +267,17 @@ ChessGame::ChessGame(StyleManager style)
 	redo->setSize({ 50,50 });
 	undo->connect("Clicked", [&]()
 		{
-			if(this->historyIndex > 0)
-			{
-				this->historyIndex--;
-				chess::Move move = this->history[this->historyIndex];
-				chess::move(this->chessboard.getTiles(), move.to, move.from);
-				if (move.capturedPiece.pawn != 0)
-				{
-					this->chessboard.getTiles()[move.to.x][move.to.y].color = move.capturedPiece.color;
-					this->chessboard.getTiles()[move.to.x][move.to.y].pawn = move.capturedPiece.pawn;
-				}
-				chess::switchTurns(this->chessboard);
-			}
+			removeFocus();
+			this->historyManager.undo(this->chessboard);
 		});
 	redo->connect("Clicked", [&]()
 		{
-			if (this->historyIndex < this->history.size())
-			{
-				chess::Move move = this->history[this->historyIndex++];
-				chess::move(this->chessboard.getTiles(), move.from, move.to);
-			}
+			removeFocus();
+			this->historyManager.redo(this->chessboard);
 		});
 	undo->getRenderer()->setTexture(tgui::Texture("sprites/undo.png"));
 	redo->getRenderer()->setTexture(tgui::Texture("sprites/redo.png"));
-	window.clear(); // clear the window of any previous placed widgets
-	// setup a chess game window with some space left for both players to potentially add a timer and show what pieces where captured
-	// lets keep a space of 200 pixels on both sides
+	window.clear();
 	window.create(sf::VideoMode(windowWidth+widthOffset*2, windowHeight), "Chess");
 	sf::Color c = this->style.blackTileColor;
 	int colorCounter = 1;
@@ -320,5 +297,103 @@ ChessGame::ChessGame(StyleManager style)
 		}
 	}
 	setupPawns();
+}
 
+void ChessGame::drawCapturedPieces()
+{
+	auto captured = this->chessboard.getCapturedPieces();
+	int x = 0, y = 0;
+	for (int k=0;k<2;k++) //for both colors
+	{
+		int counter = 0;
+		for (int i = 1; i < 6; i++) // loop through all possible captured pieces 1-> Pawn 5-> Queen
+		{
+			int count = std::count_if(captured.begin(), captured.end(), [=](chess::Tile t) { return t.pawn == i && t.color == k; });
+			for (int j = 0; j < count; j++)
+			{
+				x = counter % 2 * this->widthOffset / 2;
+				y = counter / 2 * this->widthOffset / 2;
+				sf::Sprite sprite;
+				sf::Texture texture = *this->textureManager.getTexture(i, k);
+				sprite.setTexture(texture);
+				sprite.setScale(0.25, 0.25);
+				sprite.setPosition(x + k*(this->windowWidth+widthOffset), this->windowHeight-y-this->widthOffset/2);
+				this->window.draw(sprite);
+				counter++;
+			}
+		}
+	}
+}
+
+void ComputerChessGame::handleInput()
+{
+	sf::Event event;
+	while (this->window.pollEvent(event))
+	{
+		this->gui.handleEvent(event);
+		switch (event.type)
+		{
+		case sf::Event::Closed:
+			window.close();
+		case sf::Event::MouseButtonPressed:
+		{
+			if (!this->chessboard.isCheckMate())
+			{
+				int x = ((event.mouseButton.x - widthOffset) / (double)windowWidth) * 8;
+				int y = (event.mouseButton.y / (double)windowHeight) * 8;
+				std::cout << "Tile[" << x << "][" << y << "]" << " was pressed" << std::endl;
+				if (x > -1 && x<8 && y>-1 && y < 8)
+				{
+
+					if (board[x][y].state == 2) // clicked on a possible move
+					{
+						Position pos = getFocusedTile();
+						historyManager.addMove({ pos,{x,y},this->chessboard.getTiles()[x][y] });
+
+						auto captured = chess::move(this->chessboard.getTiles(), pos, Position(x, y));
+						if (captured.pawn != 0)
+						{
+							this->chessboard.addCapturedPiece(captured);
+						}
+
+						if (this->chessboard.getTiles()[x][y].pawn == 1 && (y == 0 || y == 7))
+						{
+							promotePawn(&this->chessboard.getTiles()[x][y]);
+						}
+						removeFocus();
+						chess::switchTurns(this->chessboard);
+						// check for checkmate
+						this->chessboard.setCheckMate(chess::checkCheckMate(this->chessboard.getTiles(), this->chessboard.getTurn()));
+						if (this->chessboard.checkMate)
+						{
+							std::string checkmate = this->chessboard.turn ? "White" : "Black";
+							std::cout << "CheckMate " << checkmate << std::endl;
+						}
+						else
+						{
+							auto bestMove = getBestMove(this->chessboard, 3, false, INT_MIN, INT_MAX);
+							std::cout << "Best move: " << " from " << bestMove.first << " to " << bestMove.second << std::endl;
+							chess::move(this->chessboard.getTiles(), bestMove.first, bestMove.second);
+							chess::switchTurns(this->chessboard);
+						}
+					}
+					else if (board[x][y].tile->pawn != 0)
+					{
+						removeFocus();
+						board[x][y].state = 1;
+						auto moves = getMoves(this->chessboard.getTiles(), this->chessboard.getTurn(), Position(x, y));
+						chess::removeCheck(moves, this->chessboard.getTiles(), Position(x, y));
+						for (Position pos : moves)
+						{
+							this->board[pos.x][pos.y].state = 2;
+						}
+					}
+				}
+			}
+		}
+		default:
+			break;
+		}
+
+	}
 }

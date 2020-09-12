@@ -355,7 +355,8 @@ void chess::checkMoves(std::vector<Position>& positions, std::array<std::array<c
 	}
 }
 
-void chess::move(std::array<std::array<chess::Tile, 8>, 8>& tiles, Position from, Position to)
+// Returns the removed Tile
+chess::Tile chess::move(std::array<std::array<chess::Tile, 8>, 8>& tiles, Position from, Position to)
 {
 	// check for castling
 	if (from.x == 4 && from.y == 7) // white king
@@ -396,11 +397,61 @@ void chess::move(std::array<std::array<chess::Tile, 8>, 8>& tiles, Position from
 			tiles[7][0].pawn = 0;
 		}
 	}
+	chess::Tile capturedPiece = tiles[to.x][to.y];
 	tiles[to.x][to.y].color = tiles[from.x][from.y].color;
 	tiles[to.x][to.y].pawn = tiles[from.x][from.y].pawn;
 	tiles[from.x][from.y].color = 0;
 	tiles[from.x][from.y].pawn = 0;
 	tiles[to.x][to.y].hasMoved = true;
+	return capturedPiece;
+}
+
+// not yet working
+void chess::removeCheck(std::vector<std::pair<Position,Position>>& moves,std::array<std::array<Tile,8>,8> tiles)
+{
+	int turn = tiles[moves[0].first.x][moves[0].first.y].color;
+	int oponent = turn ? 0 : 1;
+	for (int i=0;i<moves.size();i++)
+	{
+		const auto& move = moves[i];
+		Tile removedTile = chess::move(tiles, move.first, move.second);
+		std::vector<Position> oponentMoves;
+		Position kingPosition;
+		for (int i = 0; i < tiles.size(); ++i)
+		{
+			for (int j = 0; j < tiles[i].size(); ++j)
+			{
+				if (!tiles[i][j].isEmpty() && tiles[i][j].color != turn)
+				{
+					auto moves = getMoves(tiles, oponent, Position(i, j));
+					oponentMoves.insert(oponentMoves.end(), moves.begin(), moves.end());
+				}
+				if (tiles[i][j].pawn == 6 && tiles[i][j].color == turn)
+				{
+					kingPosition = Position(i, j);
+				}
+			}
+		}
+		bool removed = false;
+		for (Position pos : oponentMoves)
+		{
+			if (pos.x == kingPosition.x && pos.y == kingPosition.y)
+			{
+				chess::move(tiles, move.second, move.first);
+				tiles[move.second.x][move.second.y] = removedTile;
+				moves.erase(moves.begin() + i);
+				i--;
+				removed = true;
+				break;
+			}
+		}
+		if (!removed)
+		{
+			chess::move(tiles, move.second, move.first);
+			tiles[move.second.x][move.second.y] = removedTile;
+		}
+	}
+	//std::cout << "idk" << std::endl;
 }
 
 void chess::removeCheck(std::vector<Position>& positions, std::array<std::array<Tile, 8>, 8> tiles, Position pos)
@@ -508,4 +559,14 @@ bool chess::checkCheckMate(std::array<std::array<chess::Tile,8>,8> tiles,int tur
 		}
 	}
 	return true;
+}
+
+void chess::ChessBoard::addCapturedPiece(const chess::Tile& captured)
+{
+	this->capturedPieces.push_back(captured);
+}
+
+void chess::ChessBoard::removeCapturedPiece(const chess::Tile& released)
+{
+	// to be made
 }

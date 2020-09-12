@@ -29,41 +29,19 @@ namespace network
 	private:
 		sf::TcpSocket& socket;
 		chess::ChessBoard chessboard;
-		std::vector<chess::Move> history;
-		int historyIndex=0;
+		HistoryManager historyManager;
 		bool color; // this will determine who is white and who is black
 		sf::RenderWindow window;
 		tgui::Gui gui;
 		std::array<std::array<imagingTile, 8>, 8> board;
 		int tileWidth = 100;
-		sf::Color black_color = sf::Color::Color(118, 150, 86);
-		sf::Color white_color = sf::Color::Color(238, 238, 210);
+		StyleManager style;
 		int windowWidth = 800, windowHeight = 800;
 		int widthOffset = 100;
 		TextureManager tmanager;
+		tgui::Label::Ptr turnLabel;
 	public:
-		ChessGameNetwork(sf::TcpSocket& socket, bool color) : socket(socket), color(color)
-		{
-			window.create(sf::VideoMode(windowWidth + 2 * widthOffset, windowHeight), "Chess game over network - " + socket.getRemoteAddress().toString());
-			gui.setTarget(window);
-			sf::Color c = black_color;
-			for (int i = 0; i < this->board.size(); i++)
-			{
-				for (int j = 0; j < this->board[i].size(); j++)
-				{
-					c = (i + j) % 2 == 0 ? this->black_color : this->white_color;
-					board[i][j].rect = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
-					board[i][j].sprite = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
-					board[i][j].rect.setFillColor(c);
-					board[i][j].defaultColor = c;
-					board[i][j].rect.setPosition((i * tileWidth) + widthOffset, j * tileWidth);
-					board[i][j].sprite.setPosition((i * tileWidth) + widthOffset, j * tileWidth);
-					board[i][j].pos = Position(i, j);
-					board[i][j].tile = &this->chessboard.getTiles()[i][j];
-				}
-			}
-			setupPawns();
-		};
+		ChessGameNetwork(sf::TcpSocket& socket, bool color, StyleManager style);
 		void run();
 		void draw();
 		void handleInput();

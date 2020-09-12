@@ -5,6 +5,7 @@
 #include "..//game/chess.h"
 #include "TextureManager.h"
 #include <TGUI/TGUI.hpp>
+#include "..//game/HistoryManager.h"
 
 struct StyleManager
 {
@@ -31,10 +32,9 @@ public:
 
 class ChessGame
 {
-private:
+protected:
 	chess::ChessBoard chessboard;
-	std::vector<chess::Move> history;
-	int historyIndex=0;
+	HistoryManager historyManager;
 	TextureManager textureManager;
 	sf::RenderWindow window;
 	std::array<std::array<imagingTile, 8>, 8> board;
@@ -49,13 +49,21 @@ public:
 	//ChessGame(sf::RenderWindow& window);
 	void run();
 	void draw();
-	void handleInput();
+	virtual void handleInput();
 	void promotePawn(chess::Tile* pawn);
-	void setStyle(StyleManager style) { this->style = style; }
-private:
+protected:
 	void setupPawns();
+	void drawCapturedPieces();
 	void removeFocus();
 	Position getFocusedTile();
+};
+
+
+class ComputerChessGame : public ChessGame
+{
+public:
+	ComputerChessGame(StyleManager style) : ChessGame(style) {};
+	void handleInput() override;
 };
 
 #endif // !IMAGING_H

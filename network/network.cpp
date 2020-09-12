@@ -1,5 +1,35 @@
 #include "network.h"
 
+
+network::ChessGameNetwork::ChessGameNetwork(sf::TcpSocket& socket, bool color,StyleManager style) : socket(socket), color(color), style(style)
+{
+	window.create(sf::VideoMode(windowWidth + 2 * widthOffset, windowHeight), "Chess game over network - " + socket.getRemoteAddress().toString());
+	gui.setTarget(window);
+	sf::Color c = style.blackTileColor;
+	for (int i = 0; i < this->board.size(); i++)
+	{
+		for (int j = 0; j < this->board[i].size(); j++)
+		{
+			c = (i + j) % 2 == 0 ? this->style.blackTileColor : this->style.whiteTileColor;
+			board[i][j].rect = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
+			board[i][j].sprite = sf::RectangleShape(sf::Vector2f(tileWidth, tileWidth));
+			board[i][j].rect.setFillColor(c);
+			board[i][j].defaultColor = c;
+			board[i][j].rect.setPosition((i * tileWidth) + widthOffset, j * tileWidth);
+			board[i][j].sprite.setPosition((i * tileWidth) + widthOffset, j * tileWidth);
+			board[i][j].pos = Position(i, j);
+			board[i][j].tile = &this->chessboard.getTiles()[i][j];
+		}
+	}
+	this->turnLabel = tgui::Label::create();
+	turnLabel->setText("Turn: " + this->chessboard.getTurn() ?  "White" : "Black");
+	turnLabel->setPosition({ 0,0 });
+	turnLabel->setSize({ this->widthOffset,20 });
+	gui.add(turnLabel);
+	setupPawns();
+}
+
+
 void network::ChessGameNetwork::run()
 {
 	this->socket.setBlocking(true);// turn on blocking again so when you make a move your thread is blocked until your oponent responds with his move
@@ -49,21 +79,9 @@ void network::ChessGameNetwork::handleInput()
 				if (board[x][y].state == 2) // clicked on a possible move
 				{
 					Position pos = getFocusedTile();
+					chess::Move move = { pos, Position(x,y), this->chessboard.getTiles()[x][y] };
 
-					if (this->historyIndex < this->history.size())
-					{
-						chess::Move move = { pos, Position(x,y), this->chessboard.getTiles()[x][y] };
-						this->history[this->historyIndex++] = move;
-					}
-					else if (this->historyIndex == this->history.size())
-					{
-						this->history.push_back({ pos, Position(x,y), this->chessboard.getTiles()[x][y] });
-						this->historyIndex++;
-					}
-					else
-					{
-						std::cout << "something wrong with history index" << std::endl;
-					}
+					this->historyManager.addMove(move);
 
 					chess::move(this->chessboard.getTiles(), pos, Position(x, y));
 					if (this->chessboard.getTiles()[x][y].pawn == 1 && (y == 0 || y == 7))
@@ -73,7 +91,7 @@ void network::ChessGameNetwork::handleInput()
 					}
 					removeFocus();
 					chess::switchTurns(this->chessboard);
-					std::cout << "turn: " << this->chessboard.getTurn() << std::endl;
+					std::cout << "Turn: " << this->chessboard.getTurn() << std::endl;
 
 					// sendOverTcp to oponent
 					this->sendOverNetwork();
@@ -110,7 +128,7 @@ void network::ChessGameNetwork::draw()
 			board[i][j].draw(this->window, this->tmanager);
 		}
 	}
-	//draw undo and redo buttons
+	turnLabel->setText("Turn: " + this->chessboard.getTurn() ? "White" : "Black");
 	this->gui.draw();
 	this->window.display();
 }
@@ -151,7 +169,7 @@ void network::ChessGameNetwork::promotePawn(chess::Tile* pawn)
 	int counter = 0;
 	for (int i = 0; i < 4; i++)
 	{
-		sf::Color c = counter % 2 == 0 ? this->black_color : this->white_color;
+		sf::Color c = counter % 2 == 0 ? this->style.blackTileColor : this->style.whiteTileColor;
 		imagingTile tile;
 		chess::Tile t(pawn->color, 0);
 		tiles[i] = t;
@@ -270,6 +288,7 @@ sf::Packet& network::operator << (sf::Packet& packet, const chess::ChessBoard& b
 		}
 	}
 	packet << board.turn;
+	packet << board.checkMate;
 	return packet;
 }
 
@@ -315,5 +334,6 @@ sf::Packet& network::operator >>(sf::Packet& packet, chess::ChessBoard& board)
 	}
 	board.tiles = tiles;
 	packet >> board.turn;
+	packet >> board.checkMate;
 	return packet;
 }

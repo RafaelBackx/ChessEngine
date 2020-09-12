@@ -44,27 +44,30 @@ namespace chess
 	std::vector<Position> getKingMoves(std::array<std::array<Tile, 8>, 8> tiles, Position pos);
 	void checkCastling(std::vector<Position>& positions, std::array<std::array<Tile, 8>, 8> tiles, Position pos);
 	void checkMoves(std::vector<Position>& positions, std::array<std::array<chess::Tile,8>,8> tiles, chess::Tile currentTile);
-	void move(std::array<std::array<chess::Tile, 8>, 8>& tiles, Position from, Position to);
+	chess::Tile move(std::array<std::array<chess::Tile, 8>, 8>& tiles, Position from, Position to); // returns the captured piece
 	void removeCheck(std::vector<Position>& positions, std::array<std::array<Tile, 8>, 8> tiles, Position pos);
+	void removeCheck(std::vector<std::pair<Position, Position>>& moves, std::array<std::array<Tile, 8>, 8> tiles);
 	std::vector<Position> getMoves(std::array<std::array<Tile, 8>, 8> & board, int turn, Position pos);
 	bool checkCheckMate(std::array<std::array<Tile, 8>, 8> board, int turn);
 
 	class ChessBoard 
 	{
-	private:
-		bool checkMate = false;
 	public:
+		std::vector<chess::Tile> capturedPieces;
+		bool checkMate = false;
 		int turn = 1;
 		std::array<std::array<chess::Tile, 8>, 8> tiles;
 		ChessBoard(){}
 		std::array<std::array<chess::Tile, 8>, 8> & getTiles() { return tiles; }
 		const std::array<std::array<chess::Tile, 8>, 8> & getTiles() const { return tiles; }
+		const std::vector<chess::Tile> getCapturedPieces() const { return this->capturedPieces; }
+		std::vector<chess::Tile>& getCapturedPieces() { return this->capturedPieces; }
 		int getTurn() const { return turn; }
 		void setTurn(int turn) { this->turn = turn; }
 		void setCheckMate(bool checkmate) { this->checkMate = checkmate; }
-		bool isCheckMate() { return this->checkMate; }
-	private:
-
+		bool isCheckMate() const { return this->checkMate; }
+		void addCapturedPiece(const chess::Tile& captured);
+		void removeCapturedPiece(const chess::Tile& released);
 	};
 	inline void switchTurns(chess::ChessBoard& board) { board.setTurn(board.getTurn() ? 0 : 1); }
 }

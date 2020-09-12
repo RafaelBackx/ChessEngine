@@ -90,24 +90,32 @@ void windows::Chess::showMenu(sf::RenderWindow& window, tgui::Gui& gui)
     gui.removeAllWidgets();
     tgui::Button::Ptr playButton = tgui::Button::create();
     playButton->setText("PLAY");
-    playButton->setPosition(window.getSize().x * 0.5 - playButton->getSize().x*0.5, window.getSize().y * 0.25);
+    playButton->setPosition(window.getSize().x * 0.5 - playButton->getSize().x*0.5, window.getSize().y * 0.15);
     auto buttonstyle = playButton->getSharedRenderer();
     buttonstyle->setBackgroundColor(tgui::Color::Black);
     buttonstyle->setTextColor(tgui::Color::White);
     playButton->connect("Clicked", [&]() 
         {
-            std::cout << "the playbutton was pressed" << std::endl;
             ChessGame game(this->style);
             game.run();
         });
     tgui::Button::Ptr network = tgui::Button::create();
     network->setText("Play over Network");
-    network->setPosition(window.getSize().x * 0.5 - network->getSize().x * 0.5, window.getSize().y * 0.5);
+    network->setPosition(window.getSize().x * 0.5 - network->getSize().x * 0.5, window.getSize().y * 0.45);
     network->connect("Clicked", &Chess::showNetworkMenu, this,std::ref(window), std::ref(gui));
     tgui::Button::Ptr style = tgui::Button::create();
     style->setText("Customize style");
-    style->setPosition({ window.getSize().x * 0.5 - style->getSize().x * 0.5, window.getSize().y * 0.75 });
+    style->setPosition({ window.getSize().x * 0.5 - style->getSize().x * 0.5, window.getSize().y * 0.6 });
     style->connect("Clicked", &Chess::showCustomizeStyleWindow,this, std::ref(window), std::ref(gui));
+    tgui::Button::Ptr computer = tgui::Button::create();
+    computer->setText("Play against the computer");
+    computer->setPosition({ window.getSize().x * 0.5 - computer->getSize().x * 0.5, window.getSize().y * 0.3 });
+    computer->connect("Clicked", [&]() 
+        {
+            ComputerChessGame game(this->style);
+            game.run();
+        });
+    gui.add(computer);
     gui.add(style);
     gui.add(playButton);
     gui.add(network);
@@ -198,7 +206,7 @@ void windows::Chess::showNetworkMenu(sf::RenderWindow& window, tgui::Gui& gui)
 
 void windows::Chess::startGame(sf::RenderWindow& window, tgui::Gui& gui, sf::TcpSocket& socket, bool color)
 {
-    network::ChessGameNetwork chessGameNetwork(socket,color);
+    network::ChessGameNetwork chessGameNetwork(socket,color,this->style);
     chessGameNetwork.run();
 }
 
