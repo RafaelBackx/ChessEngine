@@ -57,7 +57,7 @@ double getStaticEvaluation(chess::ChessBoard board)
 			}
 		}
 	}
-	//white += evaluatePosition(board, 1);
+	//white += evaluatePosition(board, 1); // too expensive
 	//black += evaluatePosition(board, 0);
 	//std::cout << white - black << std::endl;
 	return white - black;  // if white is playing better then black it will be positive otherwise it will be negative
@@ -96,7 +96,6 @@ double getBestOutcome(chess::ChessBoard& board,int depth, bool maximizing, int a
 			}
 			if (beta <= alpha)
 			{
-				//std::cout << "pruning" << std::endl;
 				break;
 			}		
 		}
@@ -113,8 +112,6 @@ double getBestOutcome(chess::ChessBoard& board,int depth, bool maximizing, int a
 	}
 }
 
-
-// OPTIMIZE
 std::vector<std::pair<Position,Position>> getAllMovesFromCurrentTurn(chess::ChessBoard board)
 {
 	std::vector<std::pair<Position,Position>> allMoves;

@@ -406,7 +406,6 @@ chess::Tile chess::move(std::array<std::array<chess::Tile, 8>, 8>& tiles, Positi
 	return capturedPiece;
 }
 
-// not yet working
 void chess::removeCheck(std::vector<std::pair<Position,Position>>& moves,std::array<std::array<Tile,8>,8> tiles)
 {
 	int turn = tiles[moves[0].first.x][moves[0].first.y].color;
@@ -451,7 +450,6 @@ void chess::removeCheck(std::vector<std::pair<Position,Position>>& moves,std::ar
 			tiles[move.second.x][move.second.y] = removedTile;
 		}
 	}
-	//std::cout << "idk" << std::endl;
 }
 
 void chess::removeCheck(std::vector<Position>& positions, std::array<std::array<Tile, 8>, 8> tiles, Position pos)
