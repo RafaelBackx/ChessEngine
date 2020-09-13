@@ -61,8 +61,9 @@ protected:
 
 class ComputerChessGame : public ChessGame
 {
+	int depth;
 public:
-	ComputerChessGame(StyleManager style) : ChessGame(style) {};
+	ComputerChessGame(StyleManager style,int depth = 2) : ChessGame(style), depth(depth) {};
 	void handleInput() override;
 };
 

@@ -11,8 +11,6 @@ std::pair<Position,Position> getBestMove(chess::ChessBoard board,int depth, bool
 		int teller = 0;
 		for (const std::pair<Position,Position>& move : moves)
 		{
-			if (move.second.x == 0 && move.second.y == 7)
-				std::cout << "breakpoint" << std::endl;
 			chess::Tile removedTile = board.getTiles()[move.second.x][move.second.y];
 			chess::move(board.getTiles(), move.first, move.second);
 			chess::switchTurns(board);

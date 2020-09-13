@@ -81,7 +81,7 @@ void network::ChessGameNetwork::handleInput()
 					Position pos = getFocusedTile();
 					chess::Move move = { pos, Position(x,y), this->chessboard.getTiles()[x][y] };
 
-					this->historyManager.addMove(move);
+					//this->historyManager.addMove(move);
 
 					chess::move(this->chessboard.getTiles(), pos, Position(x, y));
 					if (this->chessboard.getTiles()[x][y].pawn == 1 && (y == 0 || y == 7))

@@ -107,14 +107,27 @@ void windows::Chess::showMenu(sf::RenderWindow& window, tgui::Gui& gui)
     style->setText("Customize style");
     style->setPosition({ window.getSize().x * 0.5 - style->getSize().x * 0.5, window.getSize().y * 0.6 });
     style->connect("Clicked", &Chess::showCustomizeStyleWindow,this, std::ref(window), std::ref(gui));
+    tgui::Slider::Ptr computerDepth = tgui::Slider::create();
+    computerDepth->setMinimum(1);
+    computerDepth->setMaximum(4);
+    tgui::Label::Ptr computerDepthToolTip = tgui::Label::create();
+    computerDepthToolTip->setText("The amount of steps the computer simulates");
+    computerDepth->setToolTip(computerDepthToolTip);
+    computerDepth->setPosition(window.getSize().x * 0.5 - computerDepth->getSize().x * 0.5, window.getSize().y * 0.35);
+    computerDepth->setValue(2);
+    tgui::Label::Ptr computerDepthLabel = tgui::Label::create();
+    computerDepthLabel->setText("2");
+    computerDepthLabel->setPosition(window.getSize().x * 0.8 - computerDepthLabel->getSize().x * 0.5, window.getSize().y * 0.35);
     tgui::Button::Ptr computer = tgui::Button::create();
     computer->setText("Play against the computer");
     computer->setPosition({ window.getSize().x * 0.5 - computer->getSize().x * 0.5, window.getSize().y * 0.3 });
-    computer->connect("Clicked", [&]() 
+    computer->connect("Clicked", [&]()
         {
-            ComputerChessGame game(this->style);
+            ComputerChessGame game(this->style,computerDepth->getValue());
             game.run();
         });
+    gui.add(computerDepthLabel);
+    gui.add(computerDepth);
     gui.add(computer);
     gui.add(style);
     gui.add(playButton);
@@ -127,6 +140,20 @@ void windows::Chess::showMenu(sf::RenderWindow& window, tgui::Gui& gui)
             if (event.type == sf::Event::Closed)
                 window.close();
             gui.handleEvent(event); // Pass the event to the widgets
+        }
+        computerDepthLabel->setText(std::to_string(static_cast<int>(computerDepth->getValue())));
+        auto depthRenderer = computerDepth->getRenderer();
+        if (computerDepth->getValue()<=2)
+        {
+            depthRenderer->setTrackColor(tgui::Color::Green);
+        }
+        else if (computerDepth->getValue() == 3)
+        {
+            depthRenderer->setTrackColor(tgui::Color::Color(255, 69, 0));
+        }
+        else
+        {
+            depthRenderer->setTrackColor(tgui::Color::Red);
         }
         window.clear(sf::Color::White);
         gui.draw(); // Draw all widgets

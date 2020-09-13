@@ -43,11 +43,13 @@ void ChessGame::promotePawn(chess::Tile* pawn)
 		chess::Tile t(pawn->color, 0);
 		tiles[i] = t;
 		tile.rect = sf::RectangleShape(sf::Vector2f(this->tileWidth, this->tileWidth));
+		tile.sprite = sf::RectangleShape(sf::Vector2f(this->tileWidth, this->tileWidth));
 		tile.rect.setFillColor(c);
 		tile.defaultColor = c;
 		tile.tile = &tiles[i];
 		tile.pos = Position(i * tileWidth, 0);
 		tile.rect.setPosition(sf::Vector2f(i*tileWidth,0));
+		tile.sprite.setPosition(sf::Vector2f(i*tileWidth,0));
 		promotions[i] = tile;
 		++counter;
 	}
@@ -118,10 +120,6 @@ void ChessGame::handleInput()
 						std::string checkmate = this->chessboard.turn ? "White" : "Black";
 						std::cout << "CheckMate " << checkmate << std::endl;
 					}
-					//auto bestMove = getBestMove(this->chessboard,3  ,true);
-					//std::cout << "Best move: " << " from " << bestMove.first << " to " << bestMove.second << std::endl;
-					//chess::move(this->chessboard.getTiles(), bestMove.first, bestMove.second);
-					//chess::switchTurns(this->chessboard);
 				}
 				else if (board[x][y].tile->pawn != 0)
 				{
@@ -186,11 +184,11 @@ void ChessGame::setupPawns()
 	this->board[6][0].tile->pawn = 3;
 	this->board[7][0].tile->pawn = 2;
 	
-	/*for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		board[i][1].tile->pawn = 1;
 		board[i][1].tile->color = 0;
-	}*/
+	}
 
 	for (int i = 0; i < 8; i++) this->board[i][7].tile->color = 1;
 	this->board[0][7].tile->pawn = 2;
@@ -202,11 +200,11 @@ void ChessGame::setupPawns()
 	this->board[6][7].tile->pawn = 3;
 	this->board[7][7].tile->pawn = 2;
 
-	//for (int i = 0; i < 8; i++)
-	//{
-	//	board[i][6].tile->pawn = 1;
-	//	board[i][6].tile->color = 1;
-	//}
+	for (int i = 0; i < 8; i++)
+	{
+		board[i][6].tile->pawn = 1;
+		board[i][6].tile->color = 1;
+	}
 }
 
 void imagingTile::draw(sf::RenderWindow& window, TextureManager& tManager)
@@ -348,7 +346,7 @@ void ComputerChessGame::handleInput()
 					if (board[x][y].state == 2) // clicked on a possible move
 					{
 						Position pos = getFocusedTile();
-						historyManager.addMove({ pos,{x,y},this->chessboard.getTiles()[x][y] });
+						//historyManager.addMove({ pos,{x,y},this->chessboard.getTiles()[x][y] });
 
 						auto captured = chess::move(this->chessboard.getTiles(), pos, Position(x, y));
 						if (captured.pawn != 0)
@@ -371,7 +369,7 @@ void ComputerChessGame::handleInput()
 						}
 						else
 						{
-							auto bestMove = getBestMove(this->chessboard, 3, false, INT_MIN, INT_MAX);
+							auto bestMove = getBestMove(this->chessboard, this->depth, false, INT_MIN, INT_MAX);
 							std::cout << "Best move: " << " from " << bestMove.first << " to " << bestMove.second << std::endl;
 							chess::move(this->chessboard.getTiles(), bestMove.first, bestMove.second);
 							chess::switchTurns(this->chessboard);
